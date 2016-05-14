@@ -1,6 +1,7 @@
 import sys
 import numpy as np
-from scipy.io.wavfile import read
+#from scipy.io.wavfile import read
+from scikits.audiolab import wavread, Sndfile
 import os
 import h5py
 from tqdm import *
@@ -104,12 +105,24 @@ def prepare_corp_dir(list_file,path,win_len=0.025,win_shift=0.01):
         utt=Utt()
        
         utt.name=f
+        parts = f.split('_')
+        import glob
+        wav_path = path + '/' + 'dr*/' + parts[0] + '/' + parts[1] + '.wav'
+        #print(wav_path)
+        found_path = glob.glob(wav_path)
+        #print(found_path[0])
         
-        fs,utt.data=read(path+'/'+f+'.wav')
+        #fs,utt.data=read(path+'/'+f+'.wav')
+        #utt.data, fs, _ = wavread(found_path[0])
+        sndf = Sndfile(found_path[0], 'r')
+        #print(dir(sndf))
+        utt.data = sndf.read_frames(sndf.nframes)
+        fs = sndf.samplerate
         
         assert fs == 16000
 
-        tg_file=path+'/'+f+'.phn'
+        #tg_file=path+'/'+f+'.phn'
+        tg_file=found_path[0][:-4] + '.phn'
 
         if not os.path.exists(tg_file):
             raise IOError(tg_file)
